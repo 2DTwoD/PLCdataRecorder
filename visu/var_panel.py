@@ -1,3 +1,4 @@
+from collections import deque
 from tkinter import ttk, BOTH, BOTTOM, TOP
 
 from ordered_set import OrderedSet
@@ -38,5 +39,4 @@ class VarPanel(ttk.Frame):
 
         self.var_strokes.add(var_stroke)
         var_stroke.pack(side=TOP)
-
 

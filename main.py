@@ -6,7 +6,7 @@ from visu.elements.scrolled_frame import ScrolledFrame
 from visu.main_panel import MainPanel
 
 win_width = 900
-win_height = 600
+win_height = 800
 
 version = "1.0"
 

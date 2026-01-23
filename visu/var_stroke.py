@@ -1,3 +1,4 @@
+from collections import deque
 from tkinter import ttk, LEFT, S
 
 from misc.types import VarType, MemoryArea, VarStruct
@@ -17,6 +18,9 @@ bit_list = ["0", "1", "2", "3", "4", "5", "6", "7"]
 class VarStroke(ttk.Frame):
     def __init__(self, master=None, deleteAction=lambda: 0, var_struct: VarStruct=None):
         super().__init__(master)
+
+        self._buffer = deque()
+
         self.name_entry = LabelEntry(self, label_text="Имя переменной", validation_type=ValidationType.ANY, width=20)
         self.type_combo = LabelCombo(self, label_text="Тип", combo_list=type_list, width=13,
                                      combo_change_command=lambda e: self.update_visible())
@@ -79,3 +83,8 @@ class VarStroke(ttk.Frame):
         self.bit_combo.lock(VarType(self.type_combo.getText()) != VarType.BOOL)
         self.db_entry.lock(MemoryArea(self.area_combo.getText()) != MemoryArea.DB)
 
+    def in_buffer(self, value):
+        self._buffer.append(value)
+
+    def clear_buffer(self):
+        self._buffer.clear()

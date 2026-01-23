@@ -39,3 +39,6 @@ class PLCpanel(ttk.Frame):
 
     def get_address(self):
         return self.ip_entry.getValue(), self.rack_entry.getValue(), self.slot_entry.getValue()
+
+    def get_period(self):
+        return self.period_entry.getValue()
