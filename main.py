@@ -1,3 +1,5 @@
+import datetime
+import threading
 from tkinter import Tk
 
 import matplotlib.pyplot as plt
@@ -9,6 +11,15 @@ win_width = 900
 win_height = 800
 
 version = "1.0"
+
+
+def one_cycle():
+    _timer = threading.Timer(1, lambda: one_cycle())
+    _timer.daemon = True
+    _timer.start()
+    for i in range(10000):
+        pass
+    print(datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S:%f')[: -3])
 
 
 def main():
@@ -25,6 +36,7 @@ def main():
     frame_with_scroll = ScrolledFrame(window, height=win_height, width=win_width)
     main_panel = MainPanel(frame_with_scroll.canvas)
     frame_with_scroll.setMainPanel(main_panel)
+    # one_cycle()
 
     window.mainloop()
 

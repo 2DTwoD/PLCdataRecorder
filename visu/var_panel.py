@@ -1,3 +1,4 @@
+import re
 from collections import deque
 from tkinter import ttk, BOTH, BOTTOM, TOP
 
@@ -24,13 +25,16 @@ class VarPanel(ttk.Frame):
 
     def _add_var_stroke(self):
 
-        prev_var_struct = VarStruct()
         if len(self.var_strokes) > 0:
-            prev_var_struct = self.var_strokes[-1].get_var_struct()
-            if isinstance(prev_var_struct.name, str) and prev_var_struct.name[-1].isnumeric():
-                prev_var_struct.name = prev_var_struct.name[:-1] + str(int(prev_var_struct.name[-1]) + 1)
-            else:
+            prev_var_struct = VarStruct(self.var_strokes[-1].var_struct)
+            search_result = re.search("\\d+$", prev_var_struct.name)
+            if search_result is None:
                 prev_var_struct.name += ' 1'
+            else:
+                index = int(search_result.group()) + 1
+                prev_var_struct.name = prev_var_struct.name[:search_result.start()] + str(index)
+        else:
+            prev_var_struct = VarStruct()
 
         var_stroke = VarStroke(self, deleteAction=lambda: self.var_strokes.remove(var_stroke),
                                var_struct=prev_var_struct)

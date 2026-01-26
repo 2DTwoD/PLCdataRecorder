@@ -1,4 +1,4 @@
-from tkinter import ttk, CENTER, TOP, X, Widget, StringVar
+from tkinter import ttk, CENTER, TOP, X, StringVar
 
 
 class FrameWithLabel(ttk.Frame):

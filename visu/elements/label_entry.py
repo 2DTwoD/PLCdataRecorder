@@ -1,5 +1,5 @@
 from enum import Enum
-from tkinter import ttk, StringVar, BOTTOM
+from tkinter import ttk, BOTTOM
 import re
 
 from visu.elements.frame_with_label import FrameWithLabel

@@ -1,3 +1,5 @@
+import time
+
 import snap7
 from snap7.util import get_bool, get_real, get_byte, get_int, get_dint, get_word, get_dword
 
@@ -76,14 +78,15 @@ class Connector:
         error = ""
         if self.disconnected():
             error = "Сначала подключитесь к ПЛК"
-            return result, error
+            return result, time.time(), error
 
-        len = 4
         match var_struct.var_type:
             case VarType.BOOL, VarType.BYTE:
                 len = 1
             case VarType.WORD, VarType.INT:
                 len = 2
+            case _:
+                len = 4
 
         try:
             match var_struct.area:
@@ -97,6 +100,7 @@ class Connector:
                     data = self._plc.ab_read(var_struct.byte, len)
                 case _:
                     raise Exception("Неизвестная область памяти")
+            ts = time.time()
 
             match var_struct.var_type:
                 case VarType.BOOL:
@@ -118,5 +122,6 @@ class Connector:
 
         except Exception as e:
             error = str(e)
-        return result, error
+            ts = time.time()
+        return result, ts, error
 

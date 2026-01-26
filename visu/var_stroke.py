@@ -1,3 +1,4 @@
+import datetime
 from collections import deque
 from tkinter import ttk, LEFT, S
 
@@ -19,7 +20,8 @@ class VarStroke(ttk.Frame):
     def __init__(self, master=None, deleteAction=lambda: 0, var_struct: VarStruct=None):
         super().__init__(master)
 
-        self._buffer = deque()
+        self.buffer = deque()
+        self.var_struct = var_struct
 
         self.name_entry = LabelEntry(self, label_text="Имя переменной", validation_type=ValidationType.ANY, width=20)
         self.type_combo = LabelCombo(self, label_text="Тип", combo_list=type_list, width=13,
@@ -51,20 +53,18 @@ class VarStroke(ttk.Frame):
         self.value_monitor.pack(side=LEFT)
         self.delete_button.pack(side=LEFT, anchor=S)
 
-    def get_var_struct(self):
-        result = VarStruct()
-        result.name = self.name_entry.getText()
-        result.var_type = VarType(self.type_combo.getText())
-        result.area = MemoryArea(self.area_combo.getText())
-        result.db = self.db_entry.getValue()
-        result.byte = self.byte_entry.getValue()
-        result.bit = self.bit_combo.getInt()
-        result.offset = self.offset_entry.getValue()
-        result.koef = self.koef_entry.getValue()
-        return result
+    def calculate_var_struct(self):
+        self.var_struct.name = self.name_entry.getText()
+        self.var_struct.var_type = VarType(self.type_combo.getText())
+        self.var_struct.area = MemoryArea(self.area_combo.getText())
+        self.var_struct.db = self.db_entry.getValue()
+        self.var_struct.byte = self.byte_entry.getValue()
+        self.var_struct.bit = self.bit_combo.getInt()
+        self.var_struct.offset = self.offset_entry.getValue()
+        self.var_struct.koef = self.koef_entry.getValue()
 
     def setActualValue(self, value):
-        self.value_monitor.setText(str(value))
+        self.value_monitor.setText(value)
 
     def set_from_var_struct(self, var_struct: VarStruct, copy_name: bool=True):
         if var_struct is not None:
@@ -83,8 +83,8 @@ class VarStroke(ttk.Frame):
         self.bit_combo.lock(VarType(self.type_combo.getText()) != VarType.BOOL)
         self.db_entry.lock(MemoryArea(self.area_combo.getText()) != MemoryArea.DB)
 
-    def in_buffer(self, value):
-        self._buffer.append(value)
+    def in_buffer(self, ts, value, ok=False):
+        self.buffer.append((ts, value, ok))
 
-    def clear_buffer(self):
-        self._buffer.clear()
+    def get_name(self):
+        return self.name_entry.getText()
