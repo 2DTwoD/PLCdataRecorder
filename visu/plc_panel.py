@@ -45,3 +45,11 @@ class PLCpanel(ttk.Frame):
 
     def get_name(self):
         return self.name_entry.getText()
+
+    def lock(self, lck):
+        self.name_entry.lock(lck)
+        self.ip_entry.lock(lck)
+        self.rack_entry.lock(lck)
+        self.slot_entry.lock(lck)
+        self.period_entry.lock(lck)
+        self.buffer_entry.lock(lck)

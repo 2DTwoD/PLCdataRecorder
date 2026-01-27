@@ -1,11 +1,8 @@
-import datetime
 import threading
 import time
 from tkinter import ttk, X
 
 from com.connector import Connector
-from file.file_work import write_file
-from misc.types import VarStruct
 from visu.control_panel import ControlPanel
 from visu.elements.text_area import TextArea
 from visu.plc_panel import PLCpanel
@@ -13,6 +10,8 @@ from visu.var_panel import VarPanel
 
 
 time_format_for_record = '%d.%m.%Y %H:%M:%S:%f'
+
+updater_period = 2
 
 def getMessage(message):
     if message == '':
@@ -34,6 +33,7 @@ class MainPanel(ttk.Frame):
         self._timer = None
 
         self._in_process = False
+        self._period = 1
 
         self.plc_panel = PLCpanel(self)
         self.control_panel = ControlPanel(self,
@@ -48,18 +48,31 @@ class MainPanel(ttk.Frame):
         self.control_panel.pack(fill=X)
         self.info_area.pack(fill=X)
         self.var_panel.pack(fill=X)
+        threading.Thread(target=self._updater, daemon=True).start()
+
+    def lock(self, lck):
+        self.plc_panel.lock(lck)
+        self.var_panel.lock(lck)
+
+    def _updater(self):
+        for var_stroke in self.var_panel.var_strokes:
+            var_stroke.update_monitor_value()
+        time.sleep(updater_period)
+        self._updater()
 
     def _checkPLC(self):
+        self.lock(True)
         result, error = self._connector.connect(*self.plc_panel.get_address())
         if result:
             result, error = self._connector.checkPLC()
         self._connector.disconnect()
         self.info_area.clearAndInsertText(result)
         self.info_area.insertNewLineText(getMessage(error))
+        self.lock(False)
 
     def _start_record(self, many_times=True):
         if self._thread is not None and self._thread.is_alive():
-            print("Уже запущен")
+            self.info_area.insertNewLineText("Уже запущен")
             return
 
         for var_stroke in self.var_panel.var_strokes:
@@ -70,6 +83,7 @@ class MainPanel(ttk.Frame):
         self._thread.start()
 
     def _stop_record(self):
+        self.var_panel.lock(False)
         self._in_process = False
 
     def _record_thread_func(self, many_times=True):
@@ -78,46 +92,48 @@ class MainPanel(ttk.Frame):
             self.info_area.clearAndInsertText("Добавьте переменные для проверки")
             return
 
+        self.lock(True)
         connected, error = self._connector.connect(*self.plc_panel.get_address())
         if not connected:
             self.info_area.clearAndInsertText(getMessage(error))
+            self.lock(False)
             return
 
-        period = self.plc_panel.get_period() / 1000.0
+        self._period = self.plc_panel.get_period() / 1000.0
         self._in_process = many_times
 
         self.info_area.clearArea()
         if many_times:
             self.info_area.insertNewLineText("В процессе чтения...")
 
-        self._one_cycle(period)
+        self._one_cycle()
         while self._in_process:
             pass
 
         if self._timer is not None:
+            self._timer.cancel()
             self._timer.join()
             self._timer = None
 
         if many_times:
             for var_stroke in self.var_panel.var_strokes:
-                error = write_file(self.plc_panel.get_name(), var_stroke)
+                # error = write_file(self.plc_panel.get_name(), var_stroke)
                 self.info_area.insertNewLineText(error)
             self.info_area.insertNewLineText("Чтение остановлено")
-
+        else:
+            for var_stroke in self.var_panel.var_strokes:
+                self.info_area.insertNewLineText(f"{var_stroke.get_name()}: {var_stroke.get_last_value()} {getMessage(error)}")
+                var_stroke.update_monitor_value()
+        self.lock(False)
         self._connector.disconnect()
 
-    def _one_cycle(self, period):
+    def _one_cycle(self):
         if self._in_process:
-            self._timer = threading.Timer(period, self._one_cycle, args=(period, ))
+            self._timer = threading.Timer(self._period, self._one_cycle)
             self._timer.daemon = True
             self._timer.start()
 
         for var_stroke in self.var_panel.var_strokes:
-            vs = var_stroke.var_struct
-            value, ts, error = self._connector.getVar(vs)
-            if self._timer is not None:
-                var_stroke.in_buffer(ts, value, error == "")
-            else:
-                self.info_area.insertNewLineText(f"{vs.name}: {value} {getMessage(error)}")
+            var_stroke.in_buffer(self._connector.getVarMatchCase(var_stroke.var_struct))
 
-            # var_stroke.setActualValue("Ошибка" if error != "" else f"{value}")
+        print(int(1000 * (self.var_panel.get_delta_for_ts())))

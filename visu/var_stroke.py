@@ -19,7 +19,6 @@ bit_list = ["0", "1", "2", "3", "4", "5", "6", "7"]
 class VarStroke(ttk.Frame):
     def __init__(self, master=None, deleteAction=lambda: 0, var_struct: VarStruct=None):
         super().__init__(master)
-
         self.buffer = deque()
         self.var_struct = var_struct
 
@@ -63,8 +62,12 @@ class VarStroke(ttk.Frame):
         self.var_struct.offset = self.offset_entry.getValue()
         self.var_struct.koef = self.koef_entry.getValue()
 
-    def setActualValue(self, value):
-        self.value_monitor.setText(value)
+    def update_monitor_value(self):
+        if len(self.buffer) > 0:
+            last = self.buffer[-1]
+            self.value_monitor.setText(last[1] if last[2] else 'Ошибка')
+        else:
+            self.value_monitor.setText('-')
 
     def set_from_var_struct(self, var_struct: VarStruct, copy_name: bool=True):
         if var_struct is not None:
@@ -83,8 +86,29 @@ class VarStroke(ttk.Frame):
         self.bit_combo.lock(VarType(self.type_combo.getText()) != VarType.BOOL)
         self.db_entry.lock(MemoryArea(self.area_combo.getText()) != MemoryArea.DB)
 
-    def in_buffer(self, ts, value, ok=False):
-        self.buffer.append((ts, value, ok))
+    def in_buffer(self, data):
+        self.buffer.append(data)
 
     def get_name(self):
         return self.name_entry.getText()
+
+    def get_last_value(self):
+        if len(self.buffer) > 0:
+            return self.buffer[-1][1]
+        return "-"
+
+    def get_last_ts(self):
+        if len(self.buffer) > 0:
+            return self.buffer[-1][0]
+        return 0
+
+    def lock(self, lck=True):
+        self.name_entry.lock(lck)
+        self.type_combo.lock(lck)
+        self.area_combo.lock(lck)
+        self.db_entry.lock(lck)
+        self.byte_entry.lock(lck)
+        self.bit_combo.lock(lck)
+        self.offset_entry.lock(lck)
+        self.koef_entry.lock(lck)
+        self.delete_button.config(state="disabled" if lck else "normal")

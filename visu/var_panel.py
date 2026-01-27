@@ -19,9 +19,12 @@ class VarPanel(ttk.Frame):
         var_panels_label = ttk.Label(self, text="Переменные", anchor="center", relief="solid")
         var_panels_label.pack(fill=BOTH, pady=5)
 
-        add_var_button = ttk.Button(self, text="Добавить переменную", command=lambda: self._add_var_stroke())
+        self.add_var_button = ttk.Button(self, text="Добавить переменную", command=lambda: self._add_var_stroke())
 
-        add_var_button.pack(side=BOTTOM, pady=5)
+        self.add_var_button.pack(side=BOTTOM, pady=5)
+
+        for _ in range(10):
+            self._add_var_stroke()
 
     def _add_var_stroke(self):
 
@@ -44,3 +47,11 @@ class VarPanel(ttk.Frame):
         self.var_strokes.add(var_stroke)
         var_stroke.pack(side=TOP)
 
+    def get_delta_for_ts(self):
+        if len(self.var_strokes) > 0:
+            return self.var_strokes[-1].get_last_ts() - self.var_strokes[0].get_last_ts()
+
+    def lock(self, lck=True):
+        for var_stroke in self.var_strokes:
+            var_stroke.lock(lck)
+        self.add_var_button.config(state="disabled" if lck else "normal")
