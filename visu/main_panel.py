@@ -3,6 +3,9 @@ import time
 from tkinter import ttk, X
 
 from com.connector import Connector
+from file.file_work import write_file
+from misc.repeat import Repeat
+from misc.types import MutableBool
 from visu.control_panel import ControlPanel
 from visu.elements.text_area import TextArea
 from visu.plc_panel import PLCpanel
@@ -30,9 +33,8 @@ class MainPanel(ttk.Frame):
 
         self._connector = Connector()
         self._thread = None
-        self._timer = None
 
-        self._in_process = False
+        self._in_process = MutableBool()
         self._period = 1
 
         self.plc_panel = PLCpanel(self)
@@ -48,10 +50,14 @@ class MainPanel(ttk.Frame):
         self.control_panel.pack(fill=X)
         self.info_area.pack(fill=X)
         self.var_panel.pack(fill=X)
+
+        self.lock(False)
+
         threading.Thread(target=self._updater, daemon=True).start()
 
     def lock(self, lck):
         self.plc_panel.lock(lck)
+        self.control_panel.lock(lck)
         self.var_panel.lock(lck)
 
     def _updater(self):
@@ -84,7 +90,7 @@ class MainPanel(ttk.Frame):
 
     def _stop_record(self):
         self.var_panel.lock(False)
-        self._in_process = False
+        self._in_process.set(False)
 
     def _record_thread_func(self, many_times=True):
 
@@ -100,24 +106,21 @@ class MainPanel(ttk.Frame):
             return
 
         self._period = self.plc_panel.get_period() / 1000.0
-        self._in_process = many_times
+        self._in_process.set(many_times)
 
         self.info_area.clearArea()
         if many_times:
             self.info_area.insertNewLineText("В процессе чтения...")
+            Repeat(self._period, self._one_cycle, self._in_process)
+        else:
+            self._one_cycle()
 
-        self._one_cycle()
-        while self._in_process:
+        while self._in_process.get():
             pass
-
-        if self._timer is not None:
-            self._timer.cancel()
-            self._timer.join()
-            self._timer = None
 
         if many_times:
             for var_stroke in self.var_panel.var_strokes:
-                # error = write_file(self.plc_panel.get_name(), var_stroke)
+                error = write_file(self.plc_panel.get_name(), var_stroke)
                 self.info_area.insertNewLineText(error)
             self.info_area.insertNewLineText("Чтение остановлено")
         else:
@@ -128,12 +131,8 @@ class MainPanel(ttk.Frame):
         self._connector.disconnect()
 
     def _one_cycle(self):
-        if self._in_process:
-            self._timer = threading.Timer(self._period, self._one_cycle)
-            self._timer.daemon = True
-            self._timer.start()
-
         for var_stroke in self.var_panel.var_strokes:
             var_stroke.in_buffer(self._connector.getVarMatchCase(var_stroke.var_struct))
 
         print(int(1000 * (self.var_panel.get_delta_for_ts())))
+

@@ -40,3 +40,13 @@ class VarStruct:
             self.koef = 1.0
 
 
+class MutableBool(list):
+    def __init__(self, value=False):
+        super().__init__()
+        self.value = value
+
+    def get(self):
+        return self.value
+
+    def set(self, value):
+        self.value = value

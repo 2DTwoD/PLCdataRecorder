@@ -28,6 +28,7 @@ def write_file(plc_name: str, var_stroke: VarStroke):
     with open(f"records/{plc_name}/{vs.name}/{dt}.pdr", "w", encoding="utf-8") as file:
         try:
             file.write(f"Дата: {dt}, ПЛК: {plc_name}, Переменная: {vs.name}, Адрес: {get_address_from_var_struct(vs)}, Тип:{vs.var_type.value}, Смещение: {vs.offset}, Коэффициент: {vs.koef}\n")
+            file.write("Номер: timestamp : Значение : Статус\n")
             for index, data in enumerate(var_stroke.buffer):
                 stroke = f"{index} : {int(data[0] * 1000)} : {data[1]} : {data[2]}\n"
                 file.write(stroke)
