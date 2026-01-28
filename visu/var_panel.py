@@ -23,8 +23,8 @@ class VarPanel(ttk.Frame):
 
         self.add_var_button.pack(side=BOTTOM, pady=5)
 
-        for _ in range(10):
-            self._add_var_stroke()
+        # for _ in range(10):
+        #     self._add_var_stroke()
 
     def _add_var_stroke(self):
 
@@ -55,3 +55,17 @@ class VarPanel(ttk.Frame):
         for var_stroke in self.var_strokes:
             var_stroke.lock(lck)
         self.add_var_button.config(state="disabled" if lck else "normal")
+
+    def get_config(self):
+        result = []
+        for var_stroke in self.var_strokes:
+            config = {"name": var_stroke.name_entry.getText(),
+                      "type": var_stroke.type_combo.getText(),
+                      "area": var_stroke.area_combo.getText(),
+                      "db": var_stroke.db_entry.getText(),
+                      "byte": var_stroke.byte_entry.getText(),
+                      "bit": var_stroke.bit_combo.getText(),
+                      "offset": var_stroke.offset_entry.getText(),
+                      "koef": var_stroke.koef_entry.getText()}
+            result.append(config)
+        return result

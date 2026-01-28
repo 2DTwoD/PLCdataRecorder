@@ -24,13 +24,6 @@ class Connector:
     def __init__(self):
         self._plc = snap7.client.Client()
         self._connected = False
-        # plc.connect('192.168.213.130', 0, 1)
-        # start_time = time.time()
-        # for i in range(100):
-        #     mb20 = plc.mb_read(20, 1)
-        #     db = plc.db_read(1, 0, 1)
-        # print(f"Время выполнения функции: {time.time() - start_time} секунд, результат: {mb20}, {db}")
-        # plc.disconnect()
 
     def connect(self, ip: str, rack: int, slot: int) -> (bool, str):
         success = True, ""

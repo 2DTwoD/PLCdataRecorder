@@ -3,7 +3,7 @@ import time
 from tkinter import ttk, X
 
 from com.connector import Connector
-from file.file_work import write_file
+from file.file_work import write_file, save_config, read_config
 from misc.repeat import Repeat
 from misc.types import MutableBool
 from visu.control_panel import ControlPanel
@@ -17,10 +17,12 @@ time_format_for_record = '%d.%m.%Y %H:%M:%S:%f'
 updater_period = 2
 
 
-def getMessage(message):
+def getMessage(message, err_flag=True):
     if message == '':
         return message
-    result = "Ошибка: "
+    result = ""
+    if err_flag:
+        result += "Ошибка: "
     if len(message) > 2 and message[0:2] == "b'":
         result += message[2: -1]
     else:
@@ -29,8 +31,10 @@ def getMessage(message):
 
 
 class MainPanel(ttk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=None, title: str = 'App'):
         super().__init__(master)
+
+        self.title = title
 
         self._connector = Connector()
         self._thread = None
@@ -53,6 +57,9 @@ class MainPanel(ttk.Frame):
         self.control_panel.pack(fill=X)
         self.info_area.pack(fill=X)
         self.var_panel.pack(fill=X)
+
+        config = read_config(f"{title}.cfg")
+        self.plc_panel.set_config(config["plc config"])
 
         self.lock(False)
 
@@ -98,10 +105,11 @@ class MainPanel(ttk.Frame):
     def _record_thread_func(self, many_times=True):
 
         if len(self.var_panel.var_strokes) == 0:
-            self.info_area.clearAndInsertText("Добавьте переменные для проверки")
+            self.info_area.clearAndInsertText("Список переменных пуст")
             return
 
         self.lock(True)
+
         connected, error = self._connector.connect(*self.plc_panel.get_address())
         if not connected:
             self.info_area.clearAndInsertText(getMessage(error))
@@ -114,29 +122,27 @@ class MainPanel(ttk.Frame):
         self._request_count = 0
 
         self.info_area.clearArea()
+
         if many_times:
             self.info_area.insertNewLineText("В процессе чтения...")
             Repeat(self._period, self._one_cycle, self._in_process)
-        else:
-            self._one_cycle()
-
-        while self._in_process.get():
-            pass
-
-        if many_times:
+            while self._in_process.get():
+                pass
             self._save_data_in_file()
             self.info_area.insertNewLineText("Чтение остановлено")
         else:
+            self._one_cycle()
             for var_stroke in self.var_panel.var_strokes:
-                self.info_area.insertNewLineText(f"{var_stroke.get_name()}: {var_stroke.get_last_value()} {getMessage(error)}")
+                error = var_stroke.get_last_error()
+                self.info_area.insertNewLineText(f"{var_stroke.get_name()}: {var_stroke.get_last_value()}, Статус: {getMessage(error, error != 'OK')}")
                 var_stroke.update_monitor_value()
+
         self.lock(False)
         self._connector.disconnect()
 
     def _one_cycle(self):
         for var_stroke in self.var_panel.var_strokes:
             var_stroke.in_buffer(self._connector.getVarMatchCase(var_stroke.var_struct))
-            print(len(var_stroke.buffer))
         threading.Thread(target=self._after_cycle_action, daemon=True).start()
 
     def _after_cycle_action(self):
@@ -157,5 +163,8 @@ class MainPanel(ttk.Frame):
             var_stroke.buffer.clear()
 
         for element in pairs:
-            error = write_file(self.plc_panel.get_name(), element[0], element[1])
+            error = write_file(self.plc_panel.get_name(), self.plc_panel.get_address_str(), element[0], element[1])
             self.info_area.insertNewLineText(error)
+
+    def on_close(self):
+        save_config(f"{self.title}.cfg", self.plc_panel.get_config(), self.var_panel.get_config())

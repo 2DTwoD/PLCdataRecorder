@@ -57,3 +57,15 @@ class LabelEntry(FrameWithLabel):
         except:
             return self.default
         return self.getText()
+
+    def setText(self, text):
+        text = str(text)
+        if self.validation_type == ValidationType.IP_ADDRESS:
+            res = True
+            for c in text:
+                res &= self._is_valid(c)
+                if not res:
+                    return
+        elif not self._is_valid(text):
+            return
+        self.text_var.set(text)

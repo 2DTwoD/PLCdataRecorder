@@ -49,6 +49,9 @@ class PLCpanel(ttk.Frame):
     def get_name(self):
         return self.name_entry.getText()
 
+    def get_address_str(self):
+        return str(self.get_address())
+
     def lock(self, lck):
         self.name_entry.lock(lck)
         self.ip_entry.lock(lck)
@@ -56,3 +59,23 @@ class PLCpanel(ttk.Frame):
         self.slot_entry.lock(lck)
         self.period_entry.lock(lck)
         self.buffer_entry.lock(lck)
+
+    def get_config(self):
+        return {"name": self.name_entry.getText(),
+                "ip": self.ip_entry.getText(),
+                "rack": self.rack_entry.getText(),
+                "slot": self.slot_entry.getText(),
+                "period": self.period_entry.getText(),
+                "buffer": self.buffer_entry.getText()}
+
+    def set_config(self, config):
+        try:
+            self.name_entry.setText(config["name"])
+            self.ip_entry.setText(config["ip"])
+            self.rack_entry.setText(config["rack"])
+            self.slot_entry.setText(config["slot"])
+            self.period_entry.setText(config["period"])
+            self.buffer_entry.setText(config["buffer"])
+        except Exception as e:
+            return str(e)
+        return ""

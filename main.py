@@ -1,6 +1,6 @@
 import datetime
 import threading
-from tkinter import Tk
+from tkinter import Tk, messagebox
 
 import matplotlib.pyplot as plt
 
@@ -12,16 +12,6 @@ win_height = 800
 
 version = "1.0"
 
-
-def one_cycle():
-    _timer = threading.Timer(1, lambda: one_cycle())
-    _timer.daemon = True
-    _timer.start()
-    for i in range(10000):
-        pass
-    print(datetime.datetime.now().strftime('%d.%m.%Y %H:%M:%S:%f')[: -3])
-
-
 def main():
     # plt.plot(range(1000), range(1000), marker='.')
     # plt.ylabel('значение')
@@ -29,14 +19,21 @@ def main():
     # plt.show()
 
     window = Tk()
-    title = f"PLC data recorder, v{version}"
+    title = "PLC data recorder"
+    title_with_version = f"{title}, v{version}"
     window.geometry(f'{win_width}x{win_height}')
-    window.title(title)
+    window.title(title_with_version)
 
     frame_with_scroll = ScrolledFrame(window, height=win_height, width=win_width)
-    main_panel = MainPanel(frame_with_scroll.canvas)
+    main_panel = MainPanel(frame_with_scroll.canvas, title)
     frame_with_scroll.setMainPanel(main_panel)
-    # one_cycle()
+
+    def on_close():
+        if messagebox.askokcancel("Выход", "Закрыть приложение?"):
+            main_panel.on_close()
+            window.destroy()
+
+    window.protocol("WM_DELETE_WINDOW", on_close)
 
     window.mainloop()
 

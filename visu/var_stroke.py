@@ -24,9 +24,9 @@ class VarStroke(ttk.Frame):
 
         self.name_entry = LabelEntry(self, label_text="Имя переменной", validation_type=ValidationType.ANY, width=20)
         self.type_combo = LabelCombo(self, label_text="Тип", combo_list=type_list, width=13,
-                                     combo_change_command=lambda e: self.update_visible())
+                                     combo_change_command=lambda e: self._update_bit_db())
         self.area_combo = LabelCombo(self, label_text="Область", combo_list=area_list,
-                                     combo_change_command=lambda e: self.update_visible())
+                                     combo_change_command=lambda e: self._update_bit_db())
         self.db_entry = LabelEntry(self, label_text="Номер DB")
         self.byte_entry = LabelEntry(self, label_text="Байт")
         self.bit_combo = LabelCombo(self, label_text="Бит", combo_list=bit_list)
@@ -65,7 +65,7 @@ class VarStroke(ttk.Frame):
     def update_monitor_value(self):
         if len(self.buffer) > 0:
             last = self.buffer[-1]
-            self.value_monitor.setText(last[1] if last[2] else 'Ошибка')
+            self.value_monitor.setText(last[1] if last[2] == 'OK' else 'Ошибка')
         else:
             self.value_monitor.setText('-')
 
@@ -80,11 +80,11 @@ class VarStroke(ttk.Frame):
             self.bit_combo.setText(var_struct.bit)
             self.offset_entry.setText(var_struct.offset)
             self.koef_entry.setText(var_struct.koef)
-        self.update_visible()
+        self._update_bit_db()
 
-    def update_visible(self):
-        self.bit_combo.lock(VarType(self.type_combo.getText()) != VarType.BOOL)
-        self.db_entry.lock(MemoryArea(self.area_combo.getText()) != MemoryArea.DB)
+    def _update_bit_db(self, lck=False):
+        self.bit_combo.lock(VarType(self.type_combo.getText()) != VarType.BOOL or lck)
+        self.db_entry.lock(MemoryArea(self.area_combo.getText()) != MemoryArea.DB or lck)
 
     def in_buffer(self, data):
         self.buffer.append(data)
@@ -92,23 +92,27 @@ class VarStroke(ttk.Frame):
     def get_name(self):
         return self.name_entry.getText()
 
-    def get_last_value(self):
-        if len(self.buffer) > 0:
-            return self.buffer[-1][1]
-        return "-"
-
     def get_last_ts(self):
         if len(self.buffer) > 0:
             return self.buffer[-1][0]
         return 0
 
+    def get_last_value(self):
+        if len(self.buffer) > 0:
+            return self.buffer[-1][1]
+        return "-"
+
+    def get_last_error(self):
+        if len(self.buffer) > 0:
+            return self.buffer[-1][2]
+        return "-"
+
     def lock(self, lck=True):
         self.name_entry.lock(lck)
         self.type_combo.lock(lck)
         self.area_combo.lock(lck)
-        self.db_entry.lock(lck)
         self.byte_entry.lock(lck)
-        self.bit_combo.lock(lck)
         self.offset_entry.lock(lck)
         self.koef_entry.lock(lck)
         self.delete_button.config(state="disabled" if lck else "normal")
+        self._update_bit_db(lck)
