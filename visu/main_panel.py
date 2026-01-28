@@ -16,6 +16,7 @@ time_format_for_record = '%d.%m.%Y %H:%M:%S:%f'
 
 updater_period = 2
 
+
 def getMessage(message):
     if message == '':
         return message
@@ -36,6 +37,8 @@ class MainPanel(ttk.Frame):
 
         self._in_process = MutableBool()
         self._period = 1
+        self._buffer_size = 1
+        self._request_count = 0
 
         self.plc_panel = PLCpanel(self)
         self.control_panel = ControlPanel(self,
@@ -107,6 +110,8 @@ class MainPanel(ttk.Frame):
 
         self._period = self.plc_panel.get_period() / 1000.0
         self._in_process.set(many_times)
+        self._buffer_size = self.plc_panel.get_buffer_size()
+        self._request_count = 0
 
         self.info_area.clearArea()
         if many_times:
@@ -119,9 +124,7 @@ class MainPanel(ttk.Frame):
             pass
 
         if many_times:
-            for var_stroke in self.var_panel.var_strokes:
-                error = write_file(self.plc_panel.get_name(), var_stroke)
-                self.info_area.insertNewLineText(error)
+            self._save_data_in_file()
             self.info_area.insertNewLineText("Чтение остановлено")
         else:
             for var_stroke in self.var_panel.var_strokes:
@@ -133,6 +136,26 @@ class MainPanel(ttk.Frame):
     def _one_cycle(self):
         for var_stroke in self.var_panel.var_strokes:
             var_stroke.in_buffer(self._connector.getVarMatchCase(var_stroke.var_struct))
+            print(len(var_stroke.buffer))
+        threading.Thread(target=self._after_cycle_action, daemon=True).start()
 
+    def _after_cycle_action(self):
         print(int(1000 * (self.var_panel.get_delta_for_ts())))
 
+        self._request_count += 1
+        if self._request_count >= self._buffer_size:
+            self._save_data_in_file()
+            self._request_count = 0
+
+        if self.var_panel.get_delta_for_ts() > self._period:
+            self.info_area.insertNewLineText("Внимание! Время опроса больше периода опроса")
+
+    def _save_data_in_file(self):
+        pairs = []
+        for var_stroke in self.var_panel.var_strokes:
+            pairs.append((var_stroke.var_struct, var_stroke.buffer.copy()))
+            var_stroke.buffer.clear()
+
+        for element in pairs:
+            error = write_file(self.plc_panel.get_name(), element[0], element[1])
+            self.info_area.insertNewLineText(error)

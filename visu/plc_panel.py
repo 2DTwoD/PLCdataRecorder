@@ -43,6 +43,9 @@ class PLCpanel(ttk.Frame):
     def get_period(self):
         return self.period_entry.getValue()
 
+    def get_buffer_size(self):
+        return self.buffer_entry.getValue()
+
     def get_name(self):
         return self.name_entry.getText()
 
