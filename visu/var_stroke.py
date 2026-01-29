@@ -85,9 +85,6 @@ class VarStroke(ttk.Frame):
         self.bit_combo.lock(VarType(self.type_combo.getText()) != VarType.BOOL or lck)
         self.db_entry.lock(MemoryArea(self.area_combo.getText()) != MemoryArea.DB or lck)
 
-    def in_buffer(self, data):
-        self.buffer.append(data)
-
     def get_name(self):
         return self.name_entry.getText()
 

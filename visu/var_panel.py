@@ -53,6 +53,10 @@ class VarPanel(ttk.Frame):
         if len(self.var_strokes) > 0:
             return self.var_strokes[-1].get_last_ts() - self.var_strokes[0].get_last_ts()
 
+    def get_last_ts(self):
+        if len(self.var_strokes) > 0:
+            return self.var_strokes[-1].get_last_ts()
+
     def lock(self, lck=True):
         for var_stroke in self.var_strokes:
             var_stroke.lock(lck)

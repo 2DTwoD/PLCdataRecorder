@@ -12,11 +12,6 @@ from visu.plc_panel import PLCpanel
 from visu.var_panel import VarPanel
 
 
-# time_format_for_record = '%d.%m.%Y %H:%M:%S:%f'
-
-updater_period = 2
-
-
 def getMessage(message, err_flag=True):
     if message == '':
         return message
@@ -31,10 +26,11 @@ def getMessage(message, err_flag=True):
 
 
 class MainPanel(ttk.Frame):
-    def __init__(self, master=None, title: str = 'App'):
+    def __init__(self, master=None, title: str = 'App', updater_period=2):
         super().__init__(master)
 
-        self.title = title
+        self._title = title
+        self._updater_period = updater_period
 
         self._connector = Connector()
         self._thread = None
@@ -50,7 +46,7 @@ class MainPanel(ttk.Frame):
                                           check_vars_command=lambda: self._start_record(many_times=False),
                                           start_record_command=lambda: self._start_record(),
                                           stop_record_command=lambda: self._stop_record())
-        self.info_area = TextArea(self, height=5)
+        self.info_area = TextArea(self, height=9)
         self.var_panel = VarPanel(self)
 
         self.plc_panel.pack(fill=X)
@@ -79,7 +75,7 @@ class MainPanel(ttk.Frame):
     def _updater(self):
         for var_stroke in self.var_panel.var_strokes:
             var_stroke.update_monitor_value()
-        time.sleep(updater_period)
+        time.sleep(self._updater_period)
         self._updater()
 
     def _checkPLC(self):
@@ -136,32 +132,36 @@ class MainPanel(ttk.Frame):
             self._save_data_in_file()
             self.info_area.insertNewLineText("Чтение остановлено")
         else:
-            self._one_cycle()
+            start = self._one_cycle()
             for var_stroke in self.var_panel.var_strokes:
                 error = var_stroke.get_last_error()
                 self.info_area.insertNewLineText(f"{var_stroke.get_name()}: {var_stroke.get_last_value()}, Статус: {getMessage(error, error != 'OK')}",
                                                  date_flag=False)
                 var_stroke.update_monitor_value()
-            self.info_area.insertNewLineText(f"Дельта опроса: {self.var_panel.get_delta_for_ts() * 1000}мс", date_flag=False)
+
+            delta = self.var_panel.get_last_ts() - start
+            self.info_area.insertNewLineText(f"Время опроса: {delta * 1000} мс", date_flag=False)
 
         self.lock(False)
         self._connector.disconnect()
 
     def _one_cycle(self):
+        start = time.time()
         for var_stroke in self.var_panel.var_strokes:
-            var_stroke.in_buffer(self._connector.getVarMatchCase(var_stroke.var_struct))
-        threading.Thread(target=self._after_cycle_action, daemon=True).start()
+            var_stroke.buffer.append(self._connector.getVarMatchCase(var_stroke.var_struct))
+        threading.Thread(target=self._after_cycle_action, args=(start, ), daemon=True).start()
+        return start
 
-    def _after_cycle_action(self):
+    def _after_cycle_action(self, start):
         self._request_count += 1
         if self._request_count >= self._buffer_size:
             self._request_count = 0
             self._save_data_in_file()
 
-        delta = self.var_panel.get_delta_for_ts()
+        delta = self.var_panel.get_last_ts() - start
         if delta > self._period:
-            self.info_area.insertNewLineText("Внимание! Время опроса больше периода опроса")
-        print(int(1000 * delta))
+            self.info_area.insertNewLineText(f"Внимание! Время опроса({delta * 1000} мс) больше периода опроса({self._period * 1000} мс)")
+        print(1000 * delta)
 
     def _save_data_in_file(self):
         pairs = []
@@ -174,6 +174,6 @@ class MainPanel(ttk.Frame):
             self.info_area.insertNewLineText(error)
 
     def on_close(self):
-        error = save_config(f"{self.title}.cfg", self.plc_panel.get_config(), self.var_panel.get_config())
+        error = save_config(f"{self._title}.cfg", self.plc_panel.get_config(), self.var_panel.get_config())
         if error != '':
             messagebox.showerror("Ошибка!", getMessage(error))
