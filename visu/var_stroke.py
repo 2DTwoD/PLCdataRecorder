@@ -1,4 +1,3 @@
-import datetime
 from collections import deque
 from tkinter import ttk, LEFT, S
 
@@ -69,7 +68,7 @@ class VarStroke(ttk.Frame):
         else:
             self.value_monitor.setText('-')
 
-    def set_from_var_struct(self, var_struct: VarStruct, copy_name: bool=True):
+    def set_from_var_struct(self, var_struct: VarStruct, copy_name: bool = True):
         if var_struct is not None:
             if copy_name:
                 self.name_entry.setText(var_struct.name)

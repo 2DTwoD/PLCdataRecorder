@@ -29,6 +29,15 @@ class VarStruct:
             self.bit = var_struct.bit
             self.offset = var_struct.offset
             self.koef = var_struct.koef
+        elif var_struct is not None and isinstance(var_struct, dict):
+            self.name = var_struct["name"]
+            self.var_type = VarType(var_struct["var_type"])
+            self.area = MemoryArea(var_struct["area"])
+            self.db = var_struct["db"]
+            self.byte = var_struct["byte"]
+            self.bit = var_struct["bit"]
+            self.offset = var_struct["offset"]
+            self.koef = var_struct["koef"]
         else:
             self.name = 'Переменная 1'
             self.var_type = VarType.BYTE
@@ -38,6 +47,17 @@ class VarStruct:
             self.bit = 0
             self.offset = 0.0
             self.koef = 1.0
+
+    def get_dict(self):
+        return {"name": self.name,
+                "var_type": self.var_type.value,
+                "area": self.area.value,
+                "db": self.db,
+                "byte": self.byte,
+                "bit": self.bit,
+                "offset": self.offset,
+                "koef": self.koef
+                }
 
 
 class MutableBool(list):

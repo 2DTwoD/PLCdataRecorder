@@ -1,6 +1,6 @@
 import threading
 import time
-from tkinter import ttk, X
+from tkinter import ttk, X, messagebox
 
 from com.connector import Connector
 from file.file_work import write_file, save_config, read_config
@@ -12,7 +12,7 @@ from visu.plc_panel import PLCpanel
 from visu.var_panel import VarPanel
 
 
-time_format_for_record = '%d.%m.%Y %H:%M:%S:%f'
+# time_format_for_record = '%d.%m.%Y %H:%M:%S:%f'
 
 updater_period = 2
 
@@ -58,8 +58,14 @@ class MainPanel(ttk.Frame):
         self.info_area.pack(fill=X)
         self.var_panel.pack(fill=X)
 
-        config = read_config(f"{title}.cfg")
-        self.plc_panel.set_config(config["plc config"])
+        config, error = read_config(f"{title}.cfg")
+        try:
+            if config is not None and error == '':
+                self.plc_panel.set_config(config["plc config"])
+                self.var_panel.set_config(config["var config"])
+        except Exception as e:
+            error = str(e)
+        self.info_area.insertNewLineText(getMessage(error))
 
         self.lock(False)
 
@@ -90,11 +96,6 @@ class MainPanel(ttk.Frame):
         if self._thread is not None and self._thread.is_alive():
             self.info_area.insertNewLineText("Уже запущен")
             return
-
-        for var_stroke in self.var_panel.var_strokes:
-            var_stroke.buffer.clear()
-            var_stroke.calculate_var_struct()
-
         self._thread = threading.Thread(target=self._record_thread_func, args=(many_times, ), daemon=True)
         self._thread.start()
 
@@ -123,6 +124,10 @@ class MainPanel(ttk.Frame):
 
         self.info_area.clearArea()
 
+        for var_stroke in self.var_panel.var_strokes:
+            var_stroke.buffer.clear()
+            var_stroke.calculate_var_struct()
+
         if many_times:
             self.info_area.insertNewLineText("В процессе чтения...")
             Repeat(self._period, self._one_cycle, self._in_process)
@@ -134,8 +139,10 @@ class MainPanel(ttk.Frame):
             self._one_cycle()
             for var_stroke in self.var_panel.var_strokes:
                 error = var_stroke.get_last_error()
-                self.info_area.insertNewLineText(f"{var_stroke.get_name()}: {var_stroke.get_last_value()}, Статус: {getMessage(error, error != 'OK')}")
+                self.info_area.insertNewLineText(f"{var_stroke.get_name()}: {var_stroke.get_last_value()}, Статус: {getMessage(error, error != 'OK')}",
+                                                 date_flag=False)
                 var_stroke.update_monitor_value()
+            self.info_area.insertNewLineText(f"Дельта опроса: {self.var_panel.get_delta_for_ts() * 1000}мс", date_flag=False)
 
         self.lock(False)
         self._connector.disconnect()
@@ -146,15 +153,15 @@ class MainPanel(ttk.Frame):
         threading.Thread(target=self._after_cycle_action, daemon=True).start()
 
     def _after_cycle_action(self):
-        print(int(1000 * (self.var_panel.get_delta_for_ts())))
-
         self._request_count += 1
         if self._request_count >= self._buffer_size:
-            self._save_data_in_file()
             self._request_count = 0
+            self._save_data_in_file()
 
-        if self.var_panel.get_delta_for_ts() > self._period:
+        delta = self.var_panel.get_delta_for_ts()
+        if delta > self._period:
             self.info_area.insertNewLineText("Внимание! Время опроса больше периода опроса")
+        print(int(1000 * delta))
 
     def _save_data_in_file(self):
         pairs = []
@@ -163,8 +170,10 @@ class MainPanel(ttk.Frame):
             var_stroke.buffer.clear()
 
         for element in pairs:
-            error = write_file(self.plc_panel.get_name(), self.plc_panel.get_address_str(), element[0], element[1])
+            error = write_file(self.plc_panel.get_name(), self.plc_panel.get_address_str(), self.plc_panel.get_period(), element[0], element[1])
             self.info_area.insertNewLineText(error)
 
     def on_close(self):
-        save_config(f"{self.title}.cfg", self.plc_panel.get_config(), self.var_panel.get_config())
+        error = save_config(f"{self.title}.cfg", self.plc_panel.get_config(), self.var_panel.get_config())
+        if error != '':
+            messagebox.showerror("Ошибка!", getMessage(error))

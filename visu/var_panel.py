@@ -29,6 +29,7 @@ class VarPanel(ttk.Frame):
     def _add_var_stroke(self):
 
         if len(self.var_strokes) > 0:
+            self.var_strokes[-1].calculate_var_struct()
             prev_var_struct = VarStruct(self.var_strokes[-1].var_struct)
             search_result = re.search("\\d+$", prev_var_struct.name)
             if search_result is None:
@@ -39,10 +40,11 @@ class VarPanel(ttk.Frame):
         else:
             prev_var_struct = VarStruct()
 
-        var_stroke = VarStroke(self, deleteAction=lambda: self.var_strokes.remove(var_stroke),
-                               var_struct=prev_var_struct)
+        self._add_var_stroke_from_var_struct(prev_var_struct)
 
-        self._prev_var_stroke = var_stroke
+    def _add_var_stroke_from_var_struct(self, var_struct: VarStruct):
+        var_stroke = VarStroke(self, deleteAction=lambda: self.var_strokes.remove(var_stroke),
+                               var_struct=var_struct)
 
         self.var_strokes.add(var_stroke)
         var_stroke.pack(side=TOP)
@@ -59,13 +61,15 @@ class VarPanel(ttk.Frame):
     def get_config(self):
         result = []
         for var_stroke in self.var_strokes:
-            config = {"name": var_stroke.name_entry.getText(),
-                      "type": var_stroke.type_combo.getText(),
-                      "area": var_stroke.area_combo.getText(),
-                      "db": var_stroke.db_entry.getText(),
-                      "byte": var_stroke.byte_entry.getText(),
-                      "bit": var_stroke.bit_combo.getText(),
-                      "offset": var_stroke.offset_entry.getText(),
-                      "koef": var_stroke.koef_entry.getText()}
-            result.append(config)
+            var_stroke.calculate_var_struct()
+            result.append(var_stroke.var_struct.get_dict())
         return result
+
+    def set_config(self, config):
+        try:
+            for var_struct_dict in config:
+                var_struct = VarStruct(var_struct=var_struct_dict)
+                self._add_var_stroke_from_var_struct(var_struct)
+        except Exception as e:
+            return str(e)
+        return ""

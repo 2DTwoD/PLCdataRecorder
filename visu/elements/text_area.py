@@ -1,4 +1,8 @@
+import datetime
 from tkinter import ttk, Text, BOTH, RIGHT, Y, END, LEFT
+
+
+time_format_for_text_area = '%d.%m.%Y %H:%M:%S.%f'
 
 
 class TextArea(ttk.Frame):
@@ -17,18 +21,23 @@ class TextArea(ttk.Frame):
         self.textArea.delete('1.0', END)
         self.textArea.configure(state='disabled')
 
-    def insertText(self, text: str):
+    def insertText(self, text: str, date_flag=True, new_line_flag=False):
         if not isinstance(text, str) or text.strip() == "":
             return
+
         self.textArea.configure(state='normal')
-        self.textArea.insert(END, text)
+
+        date_txt = datetime.datetime.now().strftime(time_format_for_text_area)[:-3] + ' - ' if date_flag else ''
+        new_line = "" if not new_line_flag or str(self.textArea.get(1.0, END)).isspace() else "\n"
+
+        self.textArea.insert(END, f"{new_line}{date_txt}{text}")
         self.textArea.yview(END)
+
         self.textArea.configure(state='disabled')
 
-    def insertNewLineText(self, text: str):
-        newLine = "" if str(self.textArea.get(1.0, END)).isspace() else "\n"
-        self.insertText(newLine + text)
+    def insertNewLineText(self, text: str, date_flag=True):
+        self.insertText(text, date_flag, new_line_flag=True)
 
-    def clearAndInsertText(self, text: str):
+    def clearAndInsertText(self, text: str, date_flag=True):
         self.clearArea()
-        self.insertText(text)
+        self.insertText(text, date_flag)
