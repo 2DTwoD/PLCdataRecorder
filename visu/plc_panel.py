@@ -25,8 +25,10 @@ class PLCpanel(ttk.Frame):
                                    width=15, entry_text='192.168.213.130')
         self.rack_entry = LabelEntry(entry_frame, label_text="Рейка")
         self.slot_entry = LabelEntry(entry_frame, label_text="Слот", entry_text='1')
-        self.period_entry = LabelEntry(entry_frame, label_text="Период опроса, мс", entry_text='1000')
-        self.buffer_entry = LabelEntry(entry_frame, label_text="Буфер для записи", entry_text='3600')
+        self.period_entry = LabelEntry(entry_frame, label_text="Период опроса, мс", entry_text='1000',
+                                       low=10, high=3600000)
+        self.buffer_entry = LabelEntry(entry_frame, label_text="Буфер для записи", entry_text='3600',
+                                       low=100, high=100000)
         self.name_entry.pack(side=LEFT)
         self.ip_entry.pack(side=LEFT)
         self.rack_entry.pack(side=LEFT)

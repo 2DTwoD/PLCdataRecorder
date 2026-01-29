@@ -23,9 +23,6 @@ class VarPanel(ttk.Frame):
 
         self.add_var_button.pack(side=BOTTOM, pady=5)
 
-        # for _ in range(10):
-        #     self._add_var_stroke()
-
     def _add_var_stroke(self):
 
         if len(self.var_strokes) > 0:
@@ -48,10 +45,6 @@ class VarPanel(ttk.Frame):
 
         self.var_strokes.add(var_stroke)
         var_stroke.pack(side=TOP)
-
-    def get_delta_for_ts(self):
-        if len(self.var_strokes) > 0:
-            return self.var_strokes[-1].get_last_ts() - self.var_strokes[0].get_last_ts()
 
     def get_last_ts(self):
         if len(self.var_strokes) > 0:
