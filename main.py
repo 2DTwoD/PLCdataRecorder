@@ -1,5 +1,3 @@
-import datetime
-import threading
 from tkinter import Tk, messagebox
 
 import matplotlib.pyplot as plt

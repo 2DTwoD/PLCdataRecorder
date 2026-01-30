@@ -6,17 +6,17 @@ from snap7.util import get_bool, get_real, get_byte, get_int, get_dint, get_word
 from misc.types import VarType, MemoryArea, VarStruct
 
 
-def getPLCState(default_state: str):
+def get_plc_state(default_state: str):
     match default_state:
-        case "S7CpuStatusUnknown":
-            return "Неизвестно"
-        case "S7CpuStatusStop":
-            return "Остановлен"
-        case "S7CpuStatusRun":
-            return "Запущен"
+        case 'S7CpuStatusUnknown':
+            return 'Неизвестно'
+        case 'S7CpuStatusStop':
+            return 'Остановлен'
+        case 'S7CpuStatusRun':
+            return 'Запущен'
 
 
-def getFinalValue(value, var_struct: VarStruct):
+def get_final_value(value, var_struct: VarStruct):
     return value * var_struct.koef + var_struct.offset
 
 
@@ -26,7 +26,7 @@ class Connector:
         self._connected = False
 
     def connect(self, ip: str, rack: int, slot: int) -> (bool, str):
-        success = True, ""
+        success = True, ''
         if self.connected():
             return success
         try:
@@ -49,69 +49,69 @@ class Connector:
         return not self.connected()
 
     def checkPLC(self):
-        result = "Ошибка!"
-        error = ""
+        result = 'Ошибка!'
+        error = ''
         if self.disconnected():
-            error = "Сначала подключитесь к ПЛК"
+            error = 'Сначала подключитесь к ПЛК'
             return result, error
         try:
             cpu_info = self._plc.get_cpu_info()
-            module_type_name = cpu_info.ModuleTypeName.decode("utf-8")
+            module_type_name = cpu_info.ModuleTypeName.decode('utf-8')
             serial_number = cpu_info.SerialNumber.decode('utf-8')
             as_name = cpu_info.ASName.decode('utf-8')
             module_name = cpu_info.ModuleName.decode('utf-8')
-            plc_state = getPLCState(self._plc.get_cpu_state())
-            result = f'Тип модуля: {module_type_name}, Серийный номер: {serial_number}, Имя станции: {as_name}, Имя модуля: {module_name}\nСтатус: {plc_state}'
+            plc_state = get_plc_state(self._plc.get_cpu_state())
+            result = f'Тип модуля: {module_type_name}\nСерийный номер: {serial_number}\nИмя станции: {as_name}\nИмя модуля: {module_name}\nСтатус: {plc_state}'
         except Exception as e:
             error = str(e)
         return result, error
 
     def getVarMatchCase(self, var_struct: VarStruct):
         result = 0
-        error = "OK"
+        error = 'OK'
         if self.disconnected():
-            error = "Сначала подключитесь к ПЛК"
+            error = 'Сначала подключитесь к ПЛК'
             return time.time(), result, error
 
         match var_struct.var_type:
             case VarType.BOOL, VarType.BYTE:
-                len = 1
+                length = 1
             case VarType.INT, VarType.WORD:
-                len = 2
+                length = 2
             case _:
-                len = 4
+                length = 4
 
         try:
             match var_struct.area:
                 case MemoryArea.DB:
-                    data = self._plc.db_read(var_struct.db, var_struct.byte, len)
+                    data = self._plc.db_read(var_struct.db, var_struct.byte, length)
                 case MemoryArea.M:
-                    data = self._plc.mb_read(var_struct.byte, len)
+                    data = self._plc.mb_read(var_struct.byte, length)
                 case MemoryArea.I:
-                    data = self._plc.eb_read(var_struct.byte, len)
+                    data = self._plc.eb_read(var_struct.byte, length)
                 case MemoryArea.O:
-                    data = self._plc.ab_read(var_struct.byte, len)
+                    data = self._plc.ab_read(var_struct.byte, length)
                 case _:
-                    raise Exception("Неизвестная область памяти")
+                    raise Exception('Неизвестная область памяти')
             ts = time.time()
 
             match var_struct.var_type:
                 case VarType.BOOL:
-                    result = getFinalValue(get_bool(data, 0, var_struct.bit), var_struct)
+                    result = get_final_value(get_bool(data, 0, var_struct.bit), var_struct)
                 case VarType.BYTE:
-                    result = getFinalValue(get_byte(data, 0), var_struct)
+                    result = get_final_value(get_byte(data, 0), var_struct)
                 case VarType.WORD:
-                    result = getFinalValue(get_word(data, 0), var_struct)
+                    result = get_final_value(get_word(data, 0), var_struct)
                 case VarType.DWORD:
-                    result = getFinalValue(get_dword(data, 0), var_struct)
+                    result = get_final_value(get_dword(data, 0), var_struct)
                 case VarType.INT:
-                    result = getFinalValue(get_int(data, 0), var_struct)
+                    result = get_final_value(get_int(data, 0), var_struct)
                 case VarType.DINT:
-                    result = getFinalValue(get_dint(data, 0), var_struct)
+                    result = get_final_value(get_dint(data, 0), var_struct)
                 case VarType.REAL:
-                    result = getFinalValue(get_real(data, 0), var_struct)
+                    result = get_final_value(get_real(data, 0), var_struct)
                 case _:
-                    raise Exception("Неизвестный тип переменной")
+                    raise Exception('Неизвестный тип переменной')
 
         except Exception as e:
             error = str(e)
@@ -122,48 +122,47 @@ class Connector:
         result = 0
         error = ""
         if self.disconnected():
-            error = "Сначала подключитесь к ПЛК"
+            error = 'Сначала подключитесь к ПЛК'
             return result, time.time(), error
 
         if var_struct.var_type == VarType.BOOL:
-            len = 1
+            length = 1
         elif var_struct.var_type == VarType.INT or var_struct.var_type == VarType.WORD:
-            len = 2
+            length = 2
         else:
-            len = 4
+            length = 4
 
         try:
             if var_struct.area == MemoryArea.DB:
-                data = self._plc.db_read(var_struct.db, var_struct.byte, len)
+                data = self._plc.db_read(var_struct.db, var_struct.byte, length)
             elif var_struct.area == MemoryArea.M:
-                data = self._plc.mb_read(var_struct.byte, len)
+                data = self._plc.mb_read(var_struct.byte, length)
             elif var_struct.area == MemoryArea.I:
-                data = self._plc.eb_read(var_struct.byte, len)
+                data = self._plc.eb_read(var_struct.byte, length)
             elif var_struct.area == MemoryArea.O:
-                data = self._plc.ab_read(var_struct.byte, len)
+                data = self._plc.ab_read(var_struct.byte, length)
             else:
-                raise Exception("Неизвестная область памяти")
+                raise Exception('Неизвестная область памяти')
             ts = time.time()
 
             if var_struct.var_type == VarType.BOOL:
-                result = getFinalValue(get_bool(data, 0, var_struct.bit), var_struct)
+                result = get_final_value(get_bool(data, 0, var_struct.bit), var_struct)
             elif var_struct.var_type == VarType.BYTE:
-                result = getFinalValue(get_byte(data, 0), var_struct)
+                result = get_final_value(get_byte(data, 0), var_struct)
             elif var_struct.var_type == VarType.WORD:
-                result = getFinalValue(get_word(data, 0), var_struct)
+                result = get_final_value(get_word(data, 0), var_struct)
             elif var_struct.var_type == VarType.DWORD:
-                result = getFinalValue(get_dword(data, 0), var_struct)
+                result = get_final_value(get_dword(data, 0), var_struct)
             elif var_struct.var_type == VarType.INT:
-                result = getFinalValue(get_int(data, 0), var_struct)
+                result = get_final_value(get_int(data, 0), var_struct)
             elif var_struct.var_type == VarType.DINT:
-                result = getFinalValue(get_dint(data, 0), var_struct)
+                result = get_final_value(get_dint(data, 0), var_struct)
             elif var_struct.var_type == VarType.REAL:
-                result = getFinalValue(get_real(data, 0), var_struct)
+                result = get_final_value(get_real(data, 0), var_struct)
             else:
-                raise Exception("Неизвестный тип переменной")
+                raise Exception('Неизвестный тип переменной')
 
         except Exception as e:
             error = str(e)
             ts = time.time()
         return result, ts, error
-

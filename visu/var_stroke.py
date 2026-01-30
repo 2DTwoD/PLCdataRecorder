@@ -1,9 +1,9 @@
 from collections import deque
-from tkinter import ttk, LEFT, S
+from tkinter import ttk, LEFT, S, messagebox
 
-from misc.types import VarType, MemoryArea, VarStruct
+from misc.types import VarType, MemoryArea, VarStruct, ValidationType
 from visu.elements.label_combo import LabelCombo
-from visu.elements.label_entry import LabelEntry, ValidationType
+from visu.elements.label_entry import LabelEntry
 from visu.elements.label_monitor import LabelMonitor
 
 
@@ -21,7 +21,8 @@ class VarStroke(ttk.Frame):
         self.buffer = deque()
         self.var_struct = var_struct
 
-        self.name_entry = LabelEntry(self, label_text="Имя переменной", validation_type=ValidationType.ANY, width=20)
+        self.name_entry = LabelEntry(self, label_text="Имя переменной", validation_type=ValidationType.ANY,
+                                     entry_text="Var" if var_struct is None else var_struct.name, width=20)
         self.type_combo = LabelCombo(self, label_text="Тип", combo_list=type_list, width=13,
                                      combo_change_command=lambda e: self._update_bit_db())
         self.area_combo = LabelCombo(self, label_text="Область", combo_list=area_list,
@@ -35,6 +36,8 @@ class VarStroke(ttk.Frame):
         self.set_from_var_struct(var_struct)
 
         def deletecommand():
+            if not messagebox.askyesno('Вопрос', f'Удалить строку "{self.get_name()}"?'):
+                return
             deleteAction()
             self.destroy()
 
@@ -65,8 +68,6 @@ class VarStroke(ttk.Frame):
         if len(self.buffer) > 0:
             last = self.buffer[-1]
             self.value_monitor.setText(last[1] if last[2] == 'OK' else 'Ошибка')
-        else:
-            self.value_monitor.setText('-')
 
     def set_from_var_struct(self, var_struct: VarStruct, copy_name: bool = True):
         if var_struct is not None:

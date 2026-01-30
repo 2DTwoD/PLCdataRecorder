@@ -18,6 +18,13 @@ class MemoryArea(Enum):
     O = "O"
 
 
+class ValidationType(Enum):
+    INTEGER = 0
+    FLOATING = 1
+    IP_ADDRESS = 2
+    ANY = 3
+
+
 class VarStruct:
     def __init__(self, var_struct=None):
         if var_struct is not None and isinstance(var_struct, VarStruct):
@@ -60,13 +67,15 @@ class VarStruct:
                 }
 
 
+#Не используется
 class MutableBool(list):
     def __init__(self, value=False):
         super().__init__()
-        self.value = value
+        self.set(value)
 
     def get(self):
-        return self.value
+        return self[0]
 
     def set(self, value):
-        self.value = value
+        self[0] = value
+

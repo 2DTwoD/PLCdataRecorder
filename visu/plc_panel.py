@@ -1,15 +1,7 @@
 from tkinter import ttk, LEFT, BOTH, CENTER, SOLID
 
-from com.connector import Connector
-from visu.elements.label_entry import LabelEntry, ValidationType
-from visu.elements.text_area import TextArea
-from visu.var_stroke import VarStroke
-
-
-def getErrorMessage(message):
-    if len(message) > 2 or message[0:2] == "b'":
-        return message[2: -1]
-    return message
+from visu.elements.label_entry import LabelEntry
+from misc.types import ValidationType
 
 
 class PLCpanel(ttk.Frame):
@@ -20,7 +12,7 @@ class PLCpanel(ttk.Frame):
 
         entry_frame = ttk.Frame(self, padding=5)
         self.name_entry = LabelEntry(entry_frame, label_text="Название ПЛК", validation_type=ValidationType.ANY,
-                                width=15, entry_text='ПЛК1')
+                                width=15, entry_text='ПЛК')
         self.ip_entry = LabelEntry(entry_frame, label_text="IP адрес", validation_type=ValidationType.IP_ADDRESS,
                                    width=15, entry_text='192.168.213.130')
         self.rack_entry = LabelEntry(entry_frame, label_text="Рейка")

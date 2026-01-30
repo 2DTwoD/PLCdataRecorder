@@ -1,41 +1,34 @@
-from enum import Enum
 from tkinter import ttk, BOTTOM
 import re
 from typing import override
 
+from misc.types import ValidationType
 from visu.elements.frame_with_label import FrameWithLabel
 
 
-class ValidationType(Enum):
-    INTEGER = 0
-    FLOATING = 1
-    IP_ADDRESS = 2
-    ANY = 3
-
-
 class LabelEntry(FrameWithLabel):
-    def __init__(self, master=None, label_text='', entry_text='', validation_type=ValidationType.INTEGER, low=None, high=None, width=0):
+    def __init__(self, master=None, label_text='', entry_text='', validation_type=ValidationType.INTEGER,
+                 low=None, high=None, width=0):
         super().__init__(master, label_text, width)
         match validation_type:
             case ValidationType.INTEGER:
                 self.regex = "^\\d*$"
-                self.default = '0'
+                self.default = '0' if entry_text == '' else entry_text
             case ValidationType.FLOATING:
                 self.regex = "^[+-]?(\\d*(\\.\\d*)?|[.]\\d+)$"
-                self.default = '0.0'
+                self.default = '0.0' if entry_text == '' else entry_text
             case ValidationType.IP_ADDRESS:
                 self.regex = "^(\\d*|\\.*)$"
-                self.default = '127.0.0.1'
+                self.default = '127.0.0.1' if entry_text == '' else entry_text
                 low = None
                 high = None
             case ValidationType.ANY:
                 self.regex = "^.*$"
-                self.default = ''
+                self.default = '-' if entry_text == '' else entry_text
                 low = None
                 high = None
 
-        entry_text = self.default if entry_text == '' else entry_text
-        self.text_var.set(entry_text)
+        self.text_var.set(self.default)
         self.validation_type = validation_type
 
         self.low = low
@@ -54,7 +47,7 @@ class LabelEntry(FrameWithLabel):
     def getText(self):
         value = self.text_var.get()
         if len(value) == 0:
-            self.text_var.set(self.default)
+            value = self.default
 
         match self.validation_type:
             case ValidationType.INTEGER:
@@ -66,6 +59,7 @@ class LabelEntry(FrameWithLabel):
             value = max(value, self.low)
         if self.high is not None:
             value = min(value, self.high)
+
         self.setText(value)
         return self.text_var.get()
 
