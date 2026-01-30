@@ -1,5 +1,5 @@
 import re
-from collections import deque
+
 from tkinter import ttk, BOTH, BOTTOM, TOP
 
 from ordered_set import OrderedSet
@@ -16,10 +16,10 @@ class VarPanel(ttk.Frame):
 
         self.var_strokes = OrderedSet()
 
-        var_panels_label = ttk.Label(self, text="Переменные", anchor="center", relief="solid")
+        var_panels_label = ttk.Label(self, text='Переменные', anchor='center', relief='solid')
         var_panels_label.pack(fill=BOTH, pady=5)
 
-        self.add_var_button = ttk.Button(self, text="Добавить переменную", command=lambda: self._add_var_stroke())
+        self.add_var_button = ttk.Button(self, text='Добавить переменную', command=lambda: self._add_var_stroke())
 
         self.add_var_button.pack(side=BOTTOM, pady=5)
 
@@ -28,7 +28,7 @@ class VarPanel(ttk.Frame):
         if len(self.var_strokes) > 0:
             self.var_strokes[-1].calculate_var_struct()
             prev_var_struct = VarStruct(self.var_strokes[-1].var_struct)
-            search_result = re.search("\\d+$", prev_var_struct.name)
+            search_result = re.search('\\d+$', prev_var_struct.name)
             if search_result is None:
                 prev_var_struct.name += ' 1'
             else:
@@ -53,7 +53,7 @@ class VarPanel(ttk.Frame):
     def lock(self, lck=True):
         for var_stroke in self.var_strokes:
             var_stroke.lock(lck)
-        self.add_var_button.config(state="disabled" if lck else "normal")
+        self.add_var_button.config(state='disabled' if lck else 'normal')
 
     def get_config(self):
         result = []

@@ -9,7 +9,7 @@ class ScrolledFrame(ttk.Frame):
         self.width = width
 
         self.canvas = Canvas(self, highlightthickness=0)
-        scroll = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        scroll = ttk.Scrollbar(self, orient='vertical', command=self.canvas.yview)
 
         self.canvas.pack(side=LEFT, fill=BOTH)
         scroll.pack(side=RIGHT, fill=Y)
@@ -22,5 +22,4 @@ class ScrolledFrame(ttk.Frame):
 
     def setMainPanel(self, main_panel):
         self.canvas.create_window((0, 0), window=main_panel, anchor=NW, width=self.width - self.scroll_width)
-        main_panel.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
-
+        main_panel.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox('all')))

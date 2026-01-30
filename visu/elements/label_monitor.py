@@ -1,4 +1,4 @@
-from tkinter import ttk, StringVar, BOTTOM
+from tkinter import ttk, BOTTOM
 
 from visu.elements.frame_with_label import FrameWithLabel
 
@@ -13,4 +13,3 @@ class LabelMonitor(FrameWithLabel):
         self.control_widget = ttk.Entry(self, textvariable=self.text_var, width=self._width, state='readonly')
 
         self.control_widget.pack(side=BOTTOM)
-

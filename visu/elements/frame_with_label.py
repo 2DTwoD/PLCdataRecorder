@@ -14,8 +14,8 @@ class FrameWithLabel(ttk.Frame):
         st = 'disable' if lck else 'normal'
         self.control_widget.config(state=st)
 
-    def getText(self):
+    def get_text(self):
         return self.text_var.get()
 
-    def setText(self, text):
+    def set_text(self, text):
         self.text_var.set(str(text))
