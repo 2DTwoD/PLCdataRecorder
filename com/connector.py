@@ -94,6 +94,7 @@ class Connector:
                     data = self._plc.ab_read(var_struct.byte, length)
                 case _:
                     raise Exception('Неизвестная область памяти')
+
             ts = time.time()
 
             match var_struct.var_type:

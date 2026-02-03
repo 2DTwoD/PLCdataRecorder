@@ -1,3 +1,4 @@
+import threading
 from collections import deque
 from tkinter import ttk, LEFT, S, messagebox
 
@@ -18,6 +19,8 @@ bit_list = ['0', '1', '2', '3', '4', '5', '6', '7']
 class VarStroke(ttk.Frame):
     def __init__(self, master=None, deleteAction=lambda: 0, var_struct: VarStruct = None):
         super().__init__(master)
+
+        self.mutex = threading.Lock()
         self.buffer = deque()
         self.var_struct = var_struct
 
@@ -65,11 +68,13 @@ class VarStroke(ttk.Frame):
         self.var_struct.koef = self.koef_entry.get_value()
 
     def update_monitor_value(self):
-        if len(self.buffer) > 0:
-            last = self.buffer[-1]
-            error = last[2] != 'OK'
-            self.value_monitor.set_text('Ошибка' if error else last[1])
-            self.set_monitor_color(foreground='red' if error else 'black')
+        with self.mutex:
+            if len(self.buffer) > 0:
+                pass
+                last = self.buffer[-1]
+                error = last[2] != 'OK'
+                self.value_monitor.set_text('Ошибка' if error else last[1])
+                self.set_monitor_color(foreground='red' if error else '')
 
     def set_from_var_struct(self, var_struct: VarStruct, copy_name: bool = True):
         if var_struct is not None:
@@ -118,3 +123,7 @@ class VarStroke(ttk.Frame):
 
     def set_monitor_color(self, background=None, foreground=None):
         self.value_monitor.set_color(background, foreground)
+
+    def in_buffer(self, data):
+        with self.mutex:
+            self.buffer.append(data)

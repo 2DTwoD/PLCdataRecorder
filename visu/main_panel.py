@@ -26,7 +26,7 @@ def get_message(message, err_flag=True):
 
 
 class MainPanel(ttk.Frame):
-    def __init__(self, master=None, title: str = 'App', updater_period=2):
+    def __init__(self, master=None, title: str = 'App', updater_period=1):
         super().__init__(master)
 
         self._title = title
@@ -75,10 +75,10 @@ class MainPanel(ttk.Frame):
         self.var_panel.lock(lck)
 
     def _updater(self):
-        for var_stroke in self.var_panel.var_strokes:
-            var_stroke.update_monitor_value()
-        time.sleep(self._updater_period)
-        self._updater()
+        while True:
+            for var_stroke in self.var_panel.var_strokes:
+                var_stroke.update_monitor_value()
+            time.sleep(self._updater_period)
 
     def _connect(self):
         self.lock(True)
@@ -141,7 +141,7 @@ class MainPanel(ttk.Frame):
         if many_times:
             self.info_area.insert_new_line_text('В процессе чтения...')
             self._one_cycle()
-            self._repeat()
+            self._repeat_schedule()
             self.info_area.insert_new_line_text('Чтение остановлено')
             self._save_data_in_file()
         else:
@@ -162,15 +162,19 @@ class MainPanel(ttk.Frame):
     def _one_cycle(self):
         start = time.time()
         for var_stroke in self.var_panel.var_strokes:
-            var_stroke.buffer.append(self._connector.getVarMatchCase(var_stroke.var_struct))
+            var_stroke.in_buffer(self._connector.getVarMatchCase(var_stroke.var_struct))
         threading.Thread(target=self._after_cycle_action, args=(start, ), daemon=True).start()
         return start
 
-    def _repeat(self):
+    def _repeat_schedule(self):
         schedule.every(self._period).seconds.do(self._one_cycle)
         while self._in_process:
             schedule.run_pending()
         schedule.clear()
+
+    # def _repeat_sleep(self):
+    #     while self._in_process:
+    #         time.sleep(self._period - time.time() + self._one_cycle())
 
     def _after_cycle_action(self, start):
         self._request_count += 1
@@ -181,7 +185,7 @@ class MainPanel(ttk.Frame):
         delta = self.var_panel.get_last_ts() - start
         if delta > self._period:
             self.info_area.insert_new_line_text(f'Внимание! Время опроса({delta * 1000} мс) больше периода опроса({self._period * 1000} мс)')
-        # print(1000 * delta)
+        print(1000 * delta)
 
     def _save_data_in_file(self):
         self.info_area.insert_new_line_text('Начало записи переменных на диск')
