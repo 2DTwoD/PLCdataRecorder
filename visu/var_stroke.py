@@ -67,7 +67,9 @@ class VarStroke(ttk.Frame):
     def update_monitor_value(self):
         if len(self.buffer) > 0:
             last = self.buffer[-1]
-            self.value_monitor.set_text(last[1] if last[2] == 'OK' else 'Ошибка')
+            error = last[2] != 'OK'
+            self.value_monitor.set_text('Ошибка' if error else last[1])
+            self.set_monitor_color(foreground='red' if error else 'black')
 
     def set_from_var_struct(self, var_struct: VarStruct, copy_name: bool = True):
         if var_struct is not None:
@@ -113,3 +115,6 @@ class VarStroke(ttk.Frame):
         self.koef_entry.lock(lck)
         self.delete_button.config(state='disabled' if lck else 'normal')
         self._update_bit_db(lck)
+
+    def set_monitor_color(self, background=None, foreground=None):
+        self.value_monitor.set_color(background, foreground)

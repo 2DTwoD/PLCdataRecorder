@@ -19,3 +19,9 @@ class FrameWithLabel(ttk.Frame):
 
     def set_text(self, text):
         self.text_var.set(str(text))
+
+    def set_color(self, background=None, foreground=None):
+        if background is not None:
+            self.control_widget.config(background=background)
+        if foreground is not None:
+            self.control_widget.config(foreground=foreground)

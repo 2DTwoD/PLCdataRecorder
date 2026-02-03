@@ -1,3 +1,4 @@
+import threading
 from tkinter import Tk, messagebox
 
 # import matplotlib.pyplot as plt
@@ -32,7 +33,7 @@ def main():
             main_panel.on_close()
             window.destroy()
 
-    window.protocol("WM_DELETE_WINDOW", on_close)
+    window.protocol("WM_DELETE_WINDOW", lambda: threading.Thread(target=on_close, daemon=True).start())
 
     window.mainloop()
 

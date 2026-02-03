@@ -13,6 +13,7 @@ class LabelCombo(FrameWithLabel):
             self.text_var.set(combo_list[0])
         except:
             self.text_var.set('?')
+
         self.control_widget = ttk.Combobox(self, textvariable=self.text_var, width=self._width, values=combo_list)
         self.control_widget.bind('<<ComboboxSelected>>', combo_change_command)
 
@@ -23,4 +24,3 @@ class LabelCombo(FrameWithLabel):
             return int(self.get_text())
         except:
             return 0
-

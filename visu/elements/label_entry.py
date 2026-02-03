@@ -46,7 +46,9 @@ class LabelEntry(FrameWithLabel):
     @override
     def get_text(self):
         value = self.text_var.get()
+        edited = False
         if len(value) == 0:
+            edited = True
             value = self.default
 
         match self.validation_type:
@@ -56,10 +58,13 @@ class LabelEntry(FrameWithLabel):
                 value = float(value)
 
         if self.low is not None:
+            edited |= value < self.low
             value = max(value, self.low)
         if self.high is not None:
+            edited |= value > self.high
             value = min(value, self.high)
 
+        self.set_color(foreground='red' if edited else '')
         self.set_text(value)
         return self.text_var.get()
 

@@ -140,14 +140,17 @@ class MainPanel(ttk.Frame):
 
         if many_times:
             self.info_area.insert_new_line_text('В процессе чтения...')
+            self._one_cycle()
             self._repeat()
             self.info_area.insert_new_line_text('Чтение остановлено')
             self._save_data_in_file()
         else:
             start = self._one_cycle()
             for var_stroke in self.var_panel.var_strokes:
-                error = var_stroke.get_last_error()
-                self.info_area.insert_new_line_text(f'{var_stroke.get_name()}: {var_stroke.get_last_value()}, Статус: {get_message(error, error != "OK")}',
+                error_msg = var_stroke.get_last_error()
+                error = error_msg != 'OK'
+                var_stroke.set_monitor_color(foreground='red' if error else '')
+                self.info_area.insert_new_line_text(f'{var_stroke.get_name()}: {var_stroke.get_last_value()}, Статус: {get_message(error_msg, error)}',
                                                     date_flag=False)
                 var_stroke.update_monitor_value()
 
@@ -155,7 +158,6 @@ class MainPanel(ttk.Frame):
             self.info_area.insert_new_line_text(f'Время опроса: {delta * 1000} мс', date_flag=False)
 
         self._disconnect()
-        self._connector.disconnect()
 
     def _one_cycle(self):
         start = time.time()
@@ -196,11 +198,9 @@ class MainPanel(ttk.Frame):
         return error
 
     def on_close(self):
-        error = ''
         if self._in_process:
-            error = self._save_data_in_file()
-        if error != '':
-            messagebox.showerror('Ошибка!', get_message(error))
+            self._stop_record(ask_flag=False)
+            self._thread.join()
 
         error = save_config(f'{self._title}.cfg', self.plc_panel.get_config(), self.var_panel.get_config())
         if error != '':
