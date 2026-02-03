@@ -8,7 +8,7 @@ class PLCpanel(ttk.Frame):
     def __init__(self, master=None):
         super().__init__(master, padding=10)
 
-        panel_label = ttk.Label(self, text='Настройки ПЛК', anchor=CENTER, relief=SOLID)
+        panel_label = ttk.Label(self, text='Настройки ПЛК (Siemens S7-300/400/1200/1500)', anchor=CENTER, relief=SOLID)
 
         entry_frame = ttk.Frame(self, padding=5)
         self.name_entry = LabelEntry(entry_frame, label_text='Название ПЛК', validation_type=ValidationType.ANY,
