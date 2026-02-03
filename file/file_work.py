@@ -5,7 +5,8 @@ import queue
 
 from misc.types import VarStruct, MemoryArea
 
-time_format_for_file_name = '%Y.%m.%d %H-%M-%S-%f'
+time_format_for_file_name = '%d.%m.%Y %H-%M-%S-%f'
+time_format_for_save_timestamp = '%d.%m.%Y %H:%M:%S.%f'
 file_extension_for_data = 'trnd'
 
 
@@ -34,9 +35,9 @@ def write_file(plc_name: str, plc_address: str,  period: str, vs: VarStruct, buf
         try:
             f.write(
                 f'Дата: {dt}; ПЛК: {plc_name}{plc_address}; Переменная: {vs.name}; Адрес: {get_address_from_var_struct(vs)}; Тип:{vs.var_type.value}; Смещение: {vs.offset}; Коэффициент: {vs.koef}; Количество измерений: {len(buffer)}; Период опроса (мс): {period}\n')
-            f.write('Номер : timestamp : Значение : Статус\n')
+            f.write('Номер : Timestamp : Дата/время : Значение : Статус\n')
             for index, data in enumerate(buffer):
-                stroke = f'{index + 1} : {int(data[0] * 1000)} : {data[1]} : {data[2]}\n'
+                stroke = f'{index + 1} : {int(data[0] * 1000)} : {datetime.datetime.fromtimestamp(data[0]).strftime(time_format_for_save_timestamp)[:-3]} : {data[1]} : {data[2]}\n'
                 f.write(stroke)
         except Exception as e:
             error = str(e)
