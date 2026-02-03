@@ -42,12 +42,12 @@ class MainPanel(ttk.Frame):
 
         self.plc_panel = PLCpanel(self)
         self.control_panel = ControlPanel(self,
-                                          check_plc_command=lambda: self._check_plc(),
+                                          check_plc_command=self._check_plc,
                                           check_vars_command=lambda: self._start_record(many_times=False),
-                                          start_record_command=lambda: self._start_record(),
-                                          stop_record_command=lambda: self._stop_record())
+                                          start_record_command=self._start_record,
+                                          stop_record_command=self._stop_record)
         self.info_area = TextArea(self, height=9)
-        clear_button = ttk.Button(self, text='Очистить поле вывода', command=lambda: self.info_area.clear_area())
+        clear_button = ttk.Button(self, text='Очистить поле вывода', command=self._clear_info)
         self.var_panel = VarPanel(self)
 
         self.plc_panel.pack(fill=X)
@@ -181,7 +181,7 @@ class MainPanel(ttk.Frame):
         delta = self.var_panel.get_last_ts() - start
         if delta > self._period:
             self.info_area.insert_new_line_text(f'Внимание! Время опроса({delta * 1000} мс) больше периода опроса({self._period * 1000} мс)')
-        print(1000 * delta)
+        # print(1000 * delta)
 
     def _save_data_in_file(self):
         self.info_area.insert_new_line_text('Начало записи переменных на диск')
@@ -205,3 +205,7 @@ class MainPanel(ttk.Frame):
         error = save_config(f'{self._title}.cfg', self.plc_panel.get_config(), self.var_panel.get_config())
         if error != '':
             messagebox.showerror('Ошибка!', get_message(error))
+
+    def _clear_info(self):
+        self.info_area.clear_area()
+        self.info_area.insert_text('Поле вывода очищено')

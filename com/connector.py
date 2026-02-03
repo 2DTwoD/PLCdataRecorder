@@ -59,9 +59,10 @@ class Connector:
             module_type_name = cpu_info.ModuleTypeName.decode('utf-8')
             serial_number = cpu_info.SerialNumber.decode('utf-8')
             as_name = cpu_info.ASName.decode('utf-8')
+            copyright = cpu_info.Copyright.decode('utf-8')
             module_name = cpu_info.ModuleName.decode('utf-8')
             plc_state = get_plc_state(self._plc.get_cpu_state())
-            result = f'Тип модуля: {module_type_name}\nСерийный номер: {serial_number}\nИмя станции: {as_name}\nИмя модуля: {module_name}\nСтатус: {plc_state}'
+            result = f'Тип модуля: {module_type_name}\nСерийный номер: {serial_number}\nИмя станции: {as_name}\n© {copyright}\nИмя модуля: {module_name}\nСтатус: {plc_state}'
         except Exception as e:
             error = str(e)
         return result, error
