@@ -1,7 +1,6 @@
 import threading
 from tkinter import Tk, messagebox
 
-# import matplotlib.pyplot as plt
 
 from visu.elements.scrolled_frame import ScrolledFrame
 from visu.main_panel import MainPanel
@@ -10,10 +9,6 @@ win_width = 900
 win_height = 800
 
 version = "1.0"
-# plt.plot(range(1000), range(1000), marker='.')
-# plt.ylabel('значение')
-# plt.xlabel('время')
-# plt.show()
 
 
 def main():

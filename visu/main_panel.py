@@ -185,7 +185,7 @@ class MainPanel(ttk.Frame):
         delta = self.var_panel.get_last_ts() - start
         if delta > self._period:
             self.info_area.insert_new_line_text(f'Внимание! Время опроса({delta * 1000} мс) больше периода опроса({self._period * 1000} мс)')
-        print(1000 * delta)
+        # print(1000 * delta)
 
     def _save_data_in_file(self):
         self.info_area.insert_new_line_text('Начало записи переменных на диск')
