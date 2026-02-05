@@ -34,7 +34,7 @@ def write_file(plc_name: str, plc_address: str,  period: str, vs: VarStruct, buf
         f = open(f'records/{plc_name}/{vs.name}/{dt} total {len(buffer)}.{file_extension_for_data}', 'w', encoding='utf-8')
         try:
             f.write(
-                f'Дата: {dt}; ПЛК: {plc_name}{plc_address}; Переменная: {vs.name}; Адрес: {get_address_from_var_struct(vs)}; Тип:{vs.var_type.value}; Смещение: {vs.offset}; Коэффициент: {vs.koef}; Количество измерений: {len(buffer)}; Период опроса (мс): {period}\n')
+                f'Дата: {dt}; ПЛК: {plc_name}; Адрес ПЛК: {plc_address}; Переменная: {vs.name}; Адрес: {get_address_from_var_struct(vs)}; Тип: {vs.var_type.value}; Смещение: {vs.offset}; Коэффициент: {vs.koef}; Количество измерений: {len(buffer)}; Период опроса (мс): {period}\n')
             f.write('Номер | Timestamp | Дата/время | Значение | Статус\n')
             for index, data in enumerate(buffer):
                 stroke = f'{index + 1} | {data[0]} | {datetime.datetime.fromtimestamp(data[0]).strftime(time_format_for_save_timestamp)[:-3]} | {data[1]} | {data[2]}\n'
