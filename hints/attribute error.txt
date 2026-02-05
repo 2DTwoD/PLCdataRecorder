@@ -1,1 +1,0 @@
-Apart from downgrading matplotlib to 3.5.3, you can disable File | Settings | Tools | Python Scientific | Show plots in tool window
