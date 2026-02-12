@@ -50,7 +50,7 @@ class VarStruct:
             self.var_type = VarType.BYTE
             self.area = MemoryArea.M
             self.db = 1
-            self.byte = 20
+            self.byte = 0
             self.bit = 0
             self.offset = 0.0
             self.koef = 1.0
@@ -67,7 +67,7 @@ class VarStruct:
                 }
 
 
-#Не используется
+# Не используется
 class MutableBool(list):
     def __init__(self, value=False):
         super().__init__()
@@ -78,4 +78,3 @@ class MutableBool(list):
 
     def set(self, value):
         self[0] = value
-

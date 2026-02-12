@@ -2,6 +2,7 @@ from tkinter import ttk, LEFT, BOTH, CENTER, SOLID
 
 from visu.elements.label_entry import LabelEntry
 from misc.types import ValidationType
+from visu.elements.label_monitor import LabelMonitor
 
 
 class PLCpanel(ttk.Frame):
@@ -21,12 +22,15 @@ class PLCpanel(ttk.Frame):
                                        low=10, high=3600000)
         self.buffer_entry = LabelEntry(entry_frame, label_text='Буфер для записи', entry_text='3600',
                                        low=100, high=100000)
+        self.buffer_monitor = LabelMonitor(entry_frame, label_text='Заполненность буфера')
+
         self.name_entry.pack(side=LEFT)
         self.ip_entry.pack(side=LEFT)
         self.rack_entry.pack(side=LEFT)
         self.slot_entry.pack(side=LEFT)
         self.period_entry.pack(side=LEFT)
         self.buffer_entry.pack(side=LEFT)
+        self.buffer_monitor.pack(side=LEFT)
 
         panel_label.pack(fill=BOTH, pady=5)
         entry_frame.pack()
@@ -73,3 +77,6 @@ class PLCpanel(ttk.Frame):
         except Exception as e:
             return str(e)
         return ""
+
+    def set_buffer_count(self, value):
+        self.buffer_monitor.set_text(value)

@@ -44,7 +44,7 @@ class VarStroke(ttk.Frame):
             deleteAction()
             self.destroy()
 
-        self.delete_button = ttk.Button(self, text='Удалить', command=deletecommand, padding=0)
+        self.delete_button = ttk.Button(self, text='- Удалить -', command=deletecommand, padding=0)
 
         self.name_entry.pack(side=LEFT)
         self.type_combo.pack(side=LEFT)

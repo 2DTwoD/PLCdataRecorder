@@ -75,7 +75,7 @@ class LabelEntry(FrameWithLabel):
                     return int(self.get_text())
                 case ValidationType.FLOATING:
                     return float(self.get_text())
-        except:
+        except Exception as _:
             return self.default
         return self.get_text()
 
@@ -91,4 +91,3 @@ class LabelEntry(FrameWithLabel):
         elif not self._is_valid(text):
             return
         self.text_var.set(text)
-

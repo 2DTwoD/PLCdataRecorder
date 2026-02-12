@@ -79,6 +79,7 @@ class MainPanel(ttk.Frame):
         while True:
             for var_stroke in self.var_panel.var_strokes:
                 var_stroke.update_monitor_value()
+            self.plc_panel.set_buffer_count(self._request_count)
             time.sleep(self._updater_period)
 
     def _connect(self):
@@ -157,6 +158,7 @@ class MainPanel(ttk.Frame):
             delta = self.var_panel.get_last_ts() - start
             self.info_area.insert_new_line_text(f'Время опроса: {delta * 1000} мс', date_flag=False)
 
+        self._request_count = 0
         self._disconnect()
 
     def _one_cycle(self):

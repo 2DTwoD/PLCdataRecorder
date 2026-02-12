@@ -4,7 +4,7 @@ import time
 from misc.types import MutableBool
 
 
-#Не используется, sched.scheduler.run() - блокирует поток без возможности отмены
+# Не используется, sched.scheduler.run() - блокирует поток без возможности отмены
 class Repeat(sched.scheduler):
     def __init__(self, period, action, in_process: MutableBool = None):
         super().__init__(time.monotonic, time.sleep)

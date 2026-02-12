@@ -11,7 +11,7 @@ class LabelCombo(FrameWithLabel):
 
         try:
             self.text_var.set(combo_list[0])
-        except:
+        except Exception as _:
             self.text_var.set('?')
 
         self.control_widget = ttk.Combobox(self, textvariable=self.text_var, width=self._width, values=combo_list)
@@ -22,5 +22,5 @@ class LabelCombo(FrameWithLabel):
     def getInt(self):
         try:
             return int(self.get_text())
-        except:
+        except Exception as _:
             return 0

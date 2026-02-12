@@ -1,6 +1,6 @@
 import re
 
-from tkinter import ttk, BOTH, BOTTOM, TOP
+from tkinter import ttk, BOTH, BOTTOM, TOP, messagebox
 
 from ordered_set import OrderedSet
 
@@ -19,8 +19,10 @@ class VarPanel(ttk.Frame):
         var_panels_label = ttk.Label(self, text='Переменные', anchor='center', relief='solid')
         var_panels_label.pack(fill=BOTH, pady=5)
 
-        self.add_var_button = ttk.Button(self, text='Добавить переменную', command=lambda: self._add_var_stroke())
+        self.add_var_button = ttk.Button(self, text='+ Добавить переменную +', command=self._add_var_stroke)
+        self.delete_all_vars_button = ttk.Button(self, text='- Удалить все переменные -', command=self._delete_all_vars)
 
+        self.delete_all_vars_button.pack(side=BOTTOM)
         self.add_var_button.pack(side=BOTTOM, pady=5)
 
     def _add_var_stroke(self):
@@ -39,6 +41,13 @@ class VarPanel(ttk.Frame):
 
         self._add_var_stroke_from_var_struct(prev_var_struct)
 
+    def _delete_all_vars(self):
+        if not messagebox.askyesno('Вопрос', 'Удалить все переменные?'):
+            return
+        for stroke in self.var_strokes:
+            stroke.destroy()
+        self.var_strokes.clear()
+
     def _add_var_stroke_from_var_struct(self, var_struct: VarStruct):
         var_stroke = VarStroke(self, deleteAction=lambda: self.var_strokes.remove(var_stroke),
                                var_struct=var_struct)
@@ -54,6 +63,7 @@ class VarPanel(ttk.Frame):
         for var_stroke in self.var_strokes:
             var_stroke.lock(lck)
         self.add_var_button.config(state='disabled' if lck else 'normal')
+        self.delete_all_vars_button.config(state='disabled' if lck else 'normal')
 
     def get_config(self):
         result = []
