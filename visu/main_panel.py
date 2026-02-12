@@ -2,7 +2,7 @@ import threading
 import time
 from tkinter import ttk, X, messagebox
 
-import schedule
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 from com.connector import Connector
 from file.file_work import write_file, save_config, read_config
@@ -34,6 +34,7 @@ class MainPanel(ttk.Frame):
 
         self._connector = Connector()
         self._thread = None
+        self._scheduler = None
 
         self._in_process = False
         self._period = 1
@@ -119,7 +120,8 @@ class MainPanel(ttk.Frame):
     def _stop_record(self, ask_flag=True):
         if ask_flag and not messagebox.askyesno('Вопрос', 'Остановить запись переменных?'):
             return
-        self._in_process = False
+        if self._scheduler is not None:
+            self._scheduler.shutdown()
 
     def _record_thread_func(self, many_times=True):
         if len(self.var_panel.var_strokes) == 0:
@@ -130,7 +132,6 @@ class MainPanel(ttk.Frame):
             return
 
         self._period = self.plc_panel.get_period() / 1000.0
-        self._in_process = many_times
         self._buffer_size = self.plc_panel.get_buffer_size()
         self._request_count = 0
 
@@ -140,8 +141,7 @@ class MainPanel(ttk.Frame):
 
         if many_times:
             self.info_area.insert_new_line_text('В процессе чтения...')
-            self._one_cycle()
-            self._repeat_schedule()
+            self._repeat_apscheduler()
             self.info_area.insert_new_line_text('Чтение остановлено')
             self._save_data_in_file()
         else:
@@ -166,15 +166,12 @@ class MainPanel(ttk.Frame):
         threading.Thread(target=self._after_cycle_action, args=(start, ), daemon=True).start()
         return start
 
-    def _repeat_schedule(self):
-        schedule.every(self._period).seconds.do(self._one_cycle)
-        while self._in_process:
-            schedule.run_pending()
-        schedule.clear()
-
-    # def _repeat_sleep(self):
-    #     while self._in_process:
-    #         time.sleep(self._period - time.time() + self._one_cycle())
+    def _repeat_apscheduler(self):
+        self._scheduler = BlockingScheduler()
+        self._scheduler.add_job(self._one_cycle, 'interval', seconds=self._period)
+        self._one_cycle()
+        self._scheduler.start()
+        self._scheduler = None
 
     def _after_cycle_action(self, start):
         self._request_count += 1
@@ -186,6 +183,7 @@ class MainPanel(ttk.Frame):
         if delta > self._period:
             self.info_area.insert_new_line_text(f'Внимание! Время опроса({delta * 1000} мс) больше периода опроса({self._period * 1000} мс)')
         # print(1000 * delta)
+        # print(start)
 
     def _save_data_in_file(self):
         self.info_area.insert_new_line_text('Начало записи переменных на диск')
@@ -202,7 +200,7 @@ class MainPanel(ttk.Frame):
         return error
 
     def on_close(self):
-        if self._in_process:
+        if self._scheduler is not None:
             self._stop_record(ask_flag=False)
             self._thread.join()
 

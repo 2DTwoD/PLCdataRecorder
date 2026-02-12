@@ -8,7 +8,7 @@ from visu.main_panel import MainPanel
 win_width = 900
 win_height = 800
 
-version = "1.0"
+version = "1.1"
 
 
 def main():
